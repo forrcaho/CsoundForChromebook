@@ -1,6 +1,6 @@
 var editor = ace.edit("editor");
 var dirty = true;
-var csdFileEntry = undefined;
+var csdFileEntry;
 
 function handleError(e) {
   // TODO: should display this to user somehow
@@ -38,7 +38,7 @@ function saveCsd() {
         this.truncate(this.position);
       }
       unsetDirty();
-    }
+    };
     var editorContents = editor.getValue();
     var blob = new Blob([editorContents], {type: 'text/plain'});
     writer.write(blob);
@@ -70,6 +70,7 @@ function saveAsHandler() {
 }
 
 function openHandler() {
+  console.log('openHandler called');
   if (dirty) {
     // TODO: warn about losing current editor content
   }

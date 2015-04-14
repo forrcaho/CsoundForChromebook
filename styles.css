@@ -24,6 +24,7 @@ button {
 
 #leftControls {
   display: inline-block;
+  float: left;
   margin: 5px;
 }
 

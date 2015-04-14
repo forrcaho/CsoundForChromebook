@@ -36,7 +36,6 @@ var csound = (function() {
     model.setAttribute('type', mimetype);
     var csoundhook = document.getElementById('engine');
     csoundhook.appendChild(model);
-    console.log("created module"); //fc
   }
 
   /**
@@ -51,7 +50,6 @@ var csound = (function() {
     if (typeof window.attachListeners !== 'undefined') {
       window.attachListeners();
     }
-    console.log("attached default listeners"); //fc
   }
 
   /**
@@ -159,7 +157,6 @@ var csound = (function() {
    * @param {string} opt_message The status message.
    */
     function updateStatus(opt_message, keep) {
-      console.log("Csound: " + opt_message); //fc
     if (opt_message) {
       statusText = 'Csound: ' + opt_message + '\n';
     }
@@ -405,4 +402,3 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 });
-
