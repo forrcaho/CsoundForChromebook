@@ -1,0 +1,47 @@
+/* 
+The Csound PNaCl attaches to the #engine node.
+Make it invisible, but note "display:none" doesn't
+work because Chrome then removes it from the DOM
+altogether.
+*/
+#engine {
+  position: absolute;
+  width: 0
+  height: 0;
+}
+
+#title {
+  text-align: center;
+}
+
+button {
+  margin: 5px;
+}
+
+#controls {
+  width: 100%;
+}
+
+#leftControls {
+  display: inline-block;
+  margin: 5px;
+}
+
+#rightControls {
+  display: inline-block;
+  float: right;
+  margin: 5px;
+}
+
+#filename {
+  width: 100%;
+  font-size: 16pt;
+  text-align: center;
+}
+
+#editor {
+  width: 760px;
+  height: 400px;
+  margin: 10px;
+  border: 2px solid black;
+}

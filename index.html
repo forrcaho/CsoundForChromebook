@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Csound for Chromebook</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <h1 id="title">please wait while Csound loads ...</h1>
+  <div id="engine"></div>
+  <div id="controls">
+    <span id="leftControls">
+      <button id="openButton">Open CSD</button>
+      <button id="saveButton">Save CSD</button>
+      <button id="saveAsButton">Save CSD As ...</button>
+    </span>
+    <span id="rightControls">
+      <button id="playButton">Play CSD</button>
+      <button id="renderButton">Render CSD to file</button>
+    </span>
+  </div>
+  <div id="filename">&nbsp;</div>
+  <div id="editor"></div>
+
+  <script src="js/src/ace.js"
+  type="text/javascript" charset="utf-8"></script>
+  <script src="csound.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

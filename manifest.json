@@ -1,0 +1,32 @@
+{
+  "manifest_version": 2,
+  "name": "Csound for Chromebook",
+  "short_name": "CsoundForChromebook",
+  "description": "Edit and play csound .csd files on your Chromebook",
+  "version": "0.0.1",
+  "minimum_chrome_version": "38",
+
+  "icons": {
+    "16": "assets/icon_16.png",
+    "128": "assets/icon_128.png"
+  },
+
+  "app": {
+    "background": {
+      "scripts": [
+        "background.js"
+      ]
+    }
+  },
+
+  "permissions": [
+    { "fileSystem": [
+        "write",
+        "directory",
+        "retainEntries"
+      ]
+    },
+    "storage",
+    "unlimitedStorage"
+  ]
+}
