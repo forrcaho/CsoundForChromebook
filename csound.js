@@ -88,7 +88,6 @@ var csound = (function() {
    *  After module loading, point the member var to it
    */
    function moduleDidLoad() {
-     console.log("in csound.moduleDidLoad() W00t!");
     csound.module = document.getElementById('csound_module');
        updateStatus('ready', 1);
     if (typeof window.moduleDidLoad !== 'undefined') {
