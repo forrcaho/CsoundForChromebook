@@ -1,5 +1,6 @@
 var editor = ace.edit("editor");
 var dirty = true;
+var tempCsdFileEntry;
 var csdFileEntry;
 
 function handleError(e) {
@@ -27,8 +28,8 @@ function unsetDirty() {
   dirty = false;
 }
 
-function saveCsd() {
-  csdFileEntry.createWriter(function(writer) {
+function saveCsd(destFileEntry) {
+  destFileEntry.createWriter(function(writer) {
     writer.onerror = handleError;
     // http://stackoverflow.com/questions/6792607/using-the-html5-filewriter-truncate-method
     var truncated = false;
@@ -37,7 +38,9 @@ function saveCsd() {
         truncated = true;
         this.truncate(this.position);
       }
-      unsetDirty();
+      if (destFileEntry !== tempCsdFileEntry) {
+        unsetDirty();
+      }
     };
     var editorContents = editor.getValue();
     var blob = new Blob([editorContents], {type: 'text/plain'});
@@ -46,7 +49,7 @@ function saveCsd() {
 }
 
 function saveHandler() {
-  saveCsd();
+  saveCsd(csdFileEntry);
 }
 
 function saveAsHandler() {
@@ -63,7 +66,7 @@ function saveAsHandler() {
       if (fe) {
         csdFileEntry = fe;
         document.querySelector('#filename').innerText = fe.name;
-        saveCsd();
+        saveCsd(csdFileEntry);
       }
     }
   );
@@ -100,6 +103,16 @@ function openHandler() {
   );
 }
 
+function playCsdHandler() {
+  console.log('playCsdHandler called');
+  if (typeof tempCsdFileEntry === 'undefined') {
+    throw 'tempCsdFileEntry used before defined';
+  }
+  saveCsd(tempCsdFileEntry);
+  csound.Play();
+  csound.PlayCsd('temp.csd');
+}
+
 function configureEditor() {
   editor.setTheme("ace/theme/textmate");
   editor.getSession().setMode("ace/mode/csound");
@@ -113,6 +126,8 @@ function configureControls() {
     .addEventListener("click", saveAsHandler);
   document.querySelector('#openButton')
     .addEventListener("click", openHandler);
+  document.querySelector('#playCsdButton')
+    .addEventListener("click", playCsdHandler);
 }
 
 window.moduleDidLoad = function() {
@@ -120,7 +135,33 @@ window.moduleDidLoad = function() {
   console.log("csound module loaded");
 };
 
+function handleMessage (message) {
+  console.log(message.data);
+}
+
+function setUpFs(fs) {
+  fs.root.getDirectory('local', 
+            { create: true, exclusive: false },
+            setUpLocalDir,
+            handleError);
+            
+}
+
+function setUpLocalDir(dirEnt) {
+  dirEnt.getFile('temp.csd',
+           { create: true, exclusive: false },
+           function (fileEnt) { tempCsdFileEntry = fileEnt; },
+           handleError);
+}
+
+function initFileSystem() {
+  var requestFileSystem = window.webkitRequestFileSystem ||
+      window.requestFileSystem;
+  requestFileSystem(TEMPORARY, 0, setUpFs, handleError);
+}
+
 window.onload = function() {
+  initFileSystem();
   configureEditor();
   configureControls();
   unsetDirty();
