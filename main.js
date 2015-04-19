@@ -1,6 +1,30 @@
 var editor = ace.edit("editor");
 var dirty = true;
 var csdFileEntry;
+var csdObj;
+
+function parseCsd(text) {
+  var csdObj = {};
+  var match = /<CsoundSynthesizer>([\s\S]*?)<\/CsoundSynthesizer>/.exec(text);
+  if (match === null) {
+    console.log('no <CsoundSynthesizer> tags found in parseCsd');
+    return csdObj;
+  }
+  var innerText = match[1];
+  var sectionRE = /<([^>]+)>([\s\S]*?)<\/\1>/g;
+  while ( (match = sectionRE.exec(innerText)) !== null) {
+    var section = match[1];
+    var contents = match[2].replace(/^\s*/, '');
+    csdObj[section] = contents;
+  }
+  return csdObj;
+}
+
+function restartCsound() {
+  csound.destroyModule();
+  csound.attachDefaultListeners();
+  csound.createModule();
+}
 
 function handleError(e) {
   // TODO: should display this to user somehow
@@ -100,6 +124,12 @@ function openHandler() {
   );
 }
 
+function playCsdHandler() {
+  console.log('playCsdHandler entered');
+  csdObj = parseCsd(editor.getValue());
+  restartCsound();
+}
+
 function configureEditor() {
   editor.setTheme("ace/theme/textmate");
   editor.getSession().setMode("ace/mode/csound");
@@ -113,12 +143,23 @@ function configureControls() {
     .addEventListener("click", saveAsHandler);
   document.querySelector('#openButton')
     .addEventListener("click", openHandler);
+  document.querySelector('#playCsdButton')
+    .addEventListener("click", playCsdHandler);
 }
 
-window.moduleDidLoad = function() {
+function moduleDidLoad() {
   document.querySelector('#title').innerText = 'Csound for Chromebook';
   console.log("csound module loaded");
-};
+  if (typeof csdObj !== 'undefined') {
+    csound.Play();
+    csound.CompileOrc(csdObj.CsInstruments);
+    csound.ReadScore(csdObj.CsScore);
+  }
+}
+
+function handleMessage(message) {
+  console.log(message.data);
+}
 
 window.onload = function() {
   configureEditor();
