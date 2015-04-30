@@ -41,7 +41,7 @@ button {
 }
 
 #editor {
-  width: 760px;
+  width: -webkit-calc(100% - 20px);
   height: 400px;
   margin: 10px;
   border: 2px solid black;

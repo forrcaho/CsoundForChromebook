@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Csound for Chromebook</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="lib/jquery-ui/themes/smoothness/jquery-ui.css">
   <link rel="stylesheet" href="styles.css">
+  <title>Csound for Chromebook</title>
 </head>
 
 <body>
-  <h1 id="title">please wait while Csound loads ...</h1>
+  <h2 id="title">please wait while Csound loads ...</h2>
   <div id="controls">
     <span id="leftControls">
       <button id="openButton">Open CSD</button>
@@ -15,15 +17,17 @@
     </span>
     <span id="rightControls">
       <button id="playCsdButton">Play CSD</button>
-      <button id="renderCsdButton" disabled="disabled">Render CSD to file</button>
     </span>
   </div>
   <div id="filename">&nbsp;</div>
-  <div id="editor"></div>
-  <div id="engine"></div>
 
-  <script src="js/src/ace.js"
-  type="text/javascript" charset="utf-8"></script>
+    <div id="editor"></div>
+
+  <div id="engine"></div>
+  
+  <script src="lib/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script src="lib/jquery/jquery.js"></script>
+  <script src="lib/jquery-ui/jquery-ui.js"></script>
   <script src="csound.js"></script>
   <script src="main.js"></script>
 </body>

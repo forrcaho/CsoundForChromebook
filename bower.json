@@ -1,0 +1,16 @@
+{
+  "name": "CsoundForChromebook",
+  "version": "2.0.0",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery-ui": "~1.11.4",
+    "ace-builds": "~1.1.9"
+  }
+}
