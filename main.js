@@ -36,9 +36,9 @@ function setDirty() {
   if (dirty) return;
   console.log('doing something in setDirty()');
   if (typeof csdFileEntry !== 'undefined') {
-    document.querySelector('#saveButton').disabled = false;
+    $('#saveButton').button("option", "disabled", false);
   }
-  document.querySelector('#saveAsButton').disabled = false;
+  $('#saveAsButton').button("option", "disabled", false);
   dirty = true;
 }
 
@@ -46,8 +46,8 @@ function unsetDirty() {
   console.log('entering unsetDirty()');
   if (!dirty) return;
   console.log('doing something in unsetDirty()');
-  document.querySelector('#saveButton').disabled = true;
-  document.querySelector('#saveAsButton').disabled = true;
+  $('#saveButton').button("option", "disabled", true);
+  $('#saveAsButton').button("option", "disabled", true);
   dirty = false;
 }
 
@@ -86,7 +86,7 @@ function saveAsHandler() {
     function(fe) {
       if (fe) {
         csdFileEntry = fe;
-        document.querySelector('#filename').innerText = fe.name;
+       // document.querySelector('#filename').innerText = fe.name;
         saveCsd();
       }
     }
@@ -117,7 +117,7 @@ function openHandler() {
       );
       if (fe) {
         csdFileEntry = fe;
-        document.querySelector('#filename').innerText = fe.name;
+        //document.querySelector('#filename').innerText = fe.name;
         unsetDirty();
       }
     }
@@ -137,18 +137,46 @@ function configureEditor() {
 }
 
 function configureControls() {
-  document.querySelector('#saveButton')
-    .addEventListener("click", saveHandler);
-  document.querySelector('#saveAsButton')
-    .addEventListener("click", saveAsHandler);
-  document.querySelector('#openButton')
-    .addEventListener("click", openHandler);
-  document.querySelector('#playCsdButton')
-    .addEventListener("click", playCsdHandler);
+  $('#saveButton').button().on("click", saveHandler);
+  $('#saveAsButton').button().on("click", saveAsHandler);
+  $('#openButton').button().on("click", openHandler);
+  $('#playCsdButton').button().on("click", playCsdHandler);
+}
+
+function configureTabs() {
+    var tabCounter = 1;
+  $('div#tabs').tabs({
+    activate: function (event, ui) {
+      if ( ui.newTab.find("a").attr("href") == "#add_tab") {
+        tabCounter++;
+        console.log("adding tab " + tabCounter);
+        var divId = "tab" + tabCounter;
+        $('div#tabs').append('<div id="' + divId + '">Tab number ' + tabCounter + ' </div>');
+        $('div#tabs ul li').last().before('<li><a href="#' + divId + '">Tab #' + tabCounter
+        + '</a><span id="close' + divId + '" class="closetab ui-icon ui-icon-closethick"></span></li>');
+        $('span#close' + divId).on('mouseover', function() {
+          $(this).css('background-color', '#f66');
+        });
+        $('span#close' + divId).on('mouseout', function() {
+          $(this).css('background-color', '');
+        });
+        $('span#close' + divId).on('click', function() {
+          $(this).closest('li').remove();
+          $('div#' + divId).remove();
+          $('div#tabs').tabs('refresh');
+        });
+        
+        $('div#tabs').tabs('refresh');
+        $('div#tabs').tabs('option', 'active', -2);
+
+      }
+    }
+  });
+
 }
 
 function moduleDidLoad() {
-  document.querySelector('#title').innerText = 'Csound for Chromebook';
+  $('#title').text('Csound for Chromebook');
   console.log("csound module loaded");
   if (typeof csdObj !== 'undefined') {
     csound.Play();
@@ -164,6 +192,7 @@ function handleMessage(message) {
 window.onload = function() {
   configureEditor();
   configureControls();
+  configureTabs();
   unsetDirty();
-  document.querySelector('#filename').innerText = 'untitled.csd';
+  //document.querySelector('#filename').innerText = 'untitled.csd';
 };

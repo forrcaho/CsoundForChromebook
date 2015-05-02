@@ -20,6 +20,7 @@ button {
 
 #controls {
   width: 100%;
+  height: 50px;
 }
 
 #leftControls {
@@ -46,3 +47,13 @@ button {
   margin: 10px;
   border: 2px solid black;
 }
+
+li[role=tab]:focus, .ui-tabs-anchor:focus { 
+  outline: none; 
+}
+
+ #tabs li span.ui-icon-closethick { 
+   float: left; 
+   margin: 0.4em 0.2em 0 0; 
+   cursor: pointer; 
+ }

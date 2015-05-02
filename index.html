@@ -9,6 +9,7 @@
 
 <body>
   <h2 id="title">please wait while Csound loads ...</h2>
+  
   <div id="controls">
     <span id="leftControls">
       <button id="openButton">Open CSD</button>
@@ -19,9 +20,19 @@
       <button id="playCsdButton">Play CSD</button>
     </span>
   </div>
-  <div id="filename">&nbsp;</div>
+  
+  <div></div>
+  
+    <div id="tabs">
+    <ul>
+      <li><a href="#csound_output">Csound Output</a></li>
+      <li><a href="#add_tab"><span class="ui-icon ui-icon-plusthick"></span></a></li>
+    </ul>
+    <div id="csound_output">This is tab 1.</div>
+    <div id="add_tab">foo</div>
+  </div>
 
-    <div id="editor"></div>
+  <div id="editor"></div>
 
   <div id="engine"></div>
   
