@@ -1,6 +1,10 @@
 var editor = ace.edit("editor");
-var dirty = true;
-var csdFileEntry;
+var tabData = {};
+var currentTabId;
+var currentTabData;
+var csdSkel = "<CsoundSynthesizer>\n<CsInstruments>\n\n</CsInstruments>\n" +
+  "<CsScore>\n\n</CsScore>\n</CsoundSynthesizer>\n";
+//var csdFileEntry;
 var csdObj;
 
 function parseCsd(text) {
@@ -33,26 +37,24 @@ function handleError(e) {
 
 function setDirty() {
   console.log('entering setDirty()');
-  if (dirty) return;
-  console.log('doing something in setDirty()');
-  if (typeof csdFileEntry !== 'undefined') {
+  if (currentTabData.dirty) return;
+  if (typeof currentTabData.fileEntry !== 'undefined') {
     $('#saveButton').button("option", "disabled", false);
   }
   $('#saveAsButton').button("option", "disabled", false);
-  dirty = true;
+  currentTabData.dirty = true;
 }
 
 function unsetDirty() {
   console.log('entering unsetDirty()');
-  if (!dirty) return;
-  console.log('doing something in unsetDirty()');
+  if (!currentTabData.dirty) return;
   $('#saveButton').button("option", "disabled", true);
   $('#saveAsButton').button("option", "disabled", true);
-  dirty = false;
+  currentTabData.dirty = false;
 }
 
 function saveCsd() {
-  csdFileEntry.createWriter(function(writer) {
+  currentTabData.fileEntry.createWriter(function(writer) {
     writer.onerror = handleError;
     // http://stackoverflow.com/questions/6792607/using-the-html5-filewriter-truncate-method
     var truncated = false;
@@ -61,10 +63,10 @@ function saveCsd() {
         truncated = true;
         this.truncate(this.position);
       }
-      unsetDirty();
+      unsetDirty(tabId);
     };
-    var editorContents = editor.getValue();
-    var blob = new Blob([editorContents], {type: 'text/plain'});
+    var contents = currentTabData.session.getValue();
+    var blob = new Blob([contents], {type: 'text/plain'});
     writer.write(blob);
   }, handleError);
 }
@@ -77,15 +79,16 @@ function saveAsHandler() {
   chrome.fileSystem.chooseEntry(
     {
       type: "saveFile",
-      suggestedName: (typeof csdFileEntry === 'undefined') ?
-        'untitled.csd' : csdFileEntry.name,
+      suggestedName: (typeof currentTabData.fileEntry === 'undefined') ?
+        'untitled.csd' : currentTabData.fileEntry.name,
       accepts: [
         { extensions: [ "csd" ] },
       ]
     },
     function(fe) {
       if (fe) {
-        csdFileEntry = fe;
+        currentTabData.fileEntry = fe;
+        $('li#' + currentTabId + ' a').text(fe.name);
        // document.querySelector('#filename').innerText = fe.name;
         saveCsd();
       }
@@ -95,9 +98,7 @@ function saveAsHandler() {
 
 function openHandler() {
   console.log('openHandler called');
-  if (dirty) {
-    // TODO: warn about losing current editor content
-  }
+  addTab();
   chrome.fileSystem.chooseEntry(
     {
       type: "openFile"
@@ -108,15 +109,16 @@ function openHandler() {
           var reader = new FileReader();
           reader.onerror = handleError;
           reader.onload = function() {
-            editor.getSession().removeListener("change", setDirty);
-            editor.setValue(reader.result);
-            editor.getSession().on("change", setDirty);
+            currentTabData.session.removeListener("change", setDirty);
+            currentTabData.session.setValue(reader.result);
+            currentTabData.session.on("change", setDirty);
           };
           reader.readAsText(file);
         }, handleError
       );
       if (fe) {
-        csdFileEntry = fe;
+        currentTabData.fileEntry = fe;
+        $('li#' + currentTabId + ' a').text(fe.name);
         //document.querySelector('#filename').innerText = fe.name;
         unsetDirty();
       }
@@ -124,55 +126,81 @@ function openHandler() {
   );
 }
 
+function newHandler() {
+  // create new tab with skel csd
+  addTab();
+  currentTabData.session.setValue(csdSkel);
+  unsetDirty();
+}
+
 function playCsdHandler() {
   console.log('playCsdHandler entered');
-  csdObj = parseCsd(editor.getValue());
+  csdObj = parseCsd(currentTabData.session.getValue());
   restartCsound();
 }
 
+/*
 function configureEditor() {
   editor.setTheme("ace/theme/textmate");
   editor.getSession().setMode("ace/mode/csound");
   editor.getSession().on("change", setDirty);
 }
+*/
 
 function configureControls() {
+  $('#newButton').button().on("click", newHandler);
   $('#saveButton').button().on("click", saveHandler);
   $('#saveAsButton').button().on("click", saveAsHandler);
   $('#openButton').button().on("click", openHandler);
   $('#playCsdButton').button().on("click", playCsdHandler);
 }
 
-function configureTabs() {
-    var tabCounter = 1;
-  $('div#tabs').tabs({
-    activate: function (event, ui) {
-      if ( ui.newTab.find("a").attr("href") == "#add_tab") {
-        tabCounter++;
-        console.log("adding tab " + tabCounter);
-        var divId = "tab" + tabCounter;
-        $('div#tabs').append('<div id="' + divId + '">Tab number ' + tabCounter + ' </div>');
-        $('div#tabs ul li').last().before('<li><a href="#' + divId + '">Tab #' + tabCounter
-        + '</a><span id="close' + divId + '" class="closetab ui-icon ui-icon-closethick"></span></li>');
-        $('span#close' + divId).on('mouseover', function() {
+var tabCounter = 0;
+function addTab() {
+  tabCounter++;
+  var tabId = "tab" + tabCounter;
+  console.log("adding " + tabId);
+  $('div#tabs ul').append('<li id="' + tabId + '"><a href="#editor">'
+        + 'untitled' + (tabCounter === 1 ? '' : tabCounter) + '.csd' 
+        + '</a><span id="close' + tabCounter + '" class="closetab ui-icon ui-icon-closethick"></span></li>');
+        $('span#close' + tabCounter).on('mouseover', function() {
           $(this).css('background-color', '#f66');
         });
-        $('span#close' + divId).on('mouseout', function() {
+        $('span#close' + tabCounter).on('mouseout', function() {
           $(this).css('background-color', '');
         });
-        $('span#close' + divId).on('click', function() {
+        $('span#close' + tabCounter).on('click', function() {
+          // TODO: ask to save if dirty
           $(this).closest('li').remove();
-          $('div#' + divId).remove();
+          delete tabData[tabId];
           $('div#tabs').tabs('refresh');
         });
         
+        tabData[tabId] = {};
+        tabData[tabId].session = ace.createEditSession("", "ace/mode/csound");
+        editor.setSession(tabData[tabId].session);
+        
         $('div#tabs').tabs('refresh');
-        $('div#tabs').tabs('option', 'active', -2);
+        $('div#tabs').tabs('option', 'active', -1);
+        
+        currentTabId = tabId;
+        currentTabData = tabData[tabId];
+}
 
+function configureTabs() {
+  $('div#tabs').tabs({
+    activate: function (event, ui) {
+      // switch to correct editor session
+      currentTabId = ui.newTab.attr("id");
+      currentTabData = tabData[currentTabId];
+      editor.setSession(currentTabData.session);
+      if (currentTabData.dirty) {
+        setDirty();
+      } else {
+        unsetDirty();
       }
     }
   });
-
 }
 
 function moduleDidLoad() {
@@ -189,10 +217,9 @@ function handleMessage(message) {
   console.log(message.data);
 }
 
-window.onload = function() {
-  configureEditor();
+$('document').ready(function() {
+  editor.setTheme("ace/theme/textmate");
   configureControls();
   configureTabs();
-  unsetDirty();
-  //document.querySelector('#filename').innerText = 'untitled.csd';
-};
+  //unsetDirty();
+});
