@@ -1,13 +1,25 @@
+/*
+* {
+    outline: 1px solid red;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+*/
+
 /* 
 The Csound PNaCl attaches to the #engine node.
 Make it invisible, but note "display:none" doesn't
 work because Chrome then removes it from the DOM
 altogether.
 */
-#engine {
+#engine, #csound_module {
   position: absolute;
-  width: 0
+  width: 0;
   height: 0;
+}
+
+html, body {
+  height: -webkit-calc(100% - 10px)
 }
 
 #title {
@@ -31,6 +43,7 @@ button {
 
 #rightControls {
   display: inline-block;
+  margin: 2px;
   float: right;
   margin: 5px;
 }
@@ -41,12 +54,16 @@ button {
   text-align: center;
 }
 
-#editor {
-  width: -webkit-calc(100% - 20px);
-  height: 400px;
-  margin: 10px;
-  border: 2px solid black;
+#editor, #csound_output {
+  width: -webkit-calc(100% - 40px);
+  height: -webkit-calc(100% - 40px);
+  border: 1px solid black;
 }
+
+
+
+
+
 
 li[role=tab]:focus, .ui-tabs-anchor:focus { 
   outline: none; 

@@ -179,8 +179,8 @@ function addTab() {
         tabData[tabId] = {};
         tabData[tabId].session = ace.createEditSession("", "ace/mode/csound");
         editor.setSession(tabData[tabId].session);
-        
         $('div#tabs').tabs('refresh');
+        editor.resize(true); // first tab needs this to fill panel
         $('div#tabs').tabs('option', 'active', -1);
         
         currentTabId = tabId;
@@ -189,15 +189,18 @@ function addTab() {
 
 function configureTabs() {
   $('div#tabs').tabs({
+    heightStyle: 'fill',
     activate: function (event, ui) {
       // switch to correct editor session
       currentTabId = ui.newTab.attr("id");
       currentTabData = tabData[currentTabId];
-      editor.setSession(currentTabData.session);
-      if (currentTabData.dirty) {
-        setDirty();
-      } else {
-        unsetDirty();
+      if (typeof currentTabData !== 'undefined') {
+        editor.setSession(currentTabData.session);
+        if (currentTabData.dirty) {
+          setDirty();
+        } else {
+          unsetDirty();
+        }
       }
     }
   });
@@ -213,9 +216,20 @@ function moduleDidLoad() {
   }
 }
 
+var csoundMessageCount = 0;
 function handleMessage(message) {
-  console.log(message.data);
+  $('#csound_output').append(message.data);
+  $('#csound_output').scrollTop(99999); // focus on bottom
+  if (csoundMessageCount++ >= 1000) {
+    $('#csound_output').text(' ');
+    csoundMessageCount = 0;
+  }
 }
+
+$(window).resize(function() {
+  console.log('resize handler called');
+  $('div#tabs').tabs('refresh');
+});
 
 $('document').ready(function() {
   editor.setTheme("ace/theme/textmate");
