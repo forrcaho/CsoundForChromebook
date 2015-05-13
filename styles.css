@@ -60,10 +60,10 @@ button {
   border: 1px solid black;
 }
 
-
-
-
-
+#csound_output {
+  color: #ccc;
+  background-color: #000;
+}
 
 li[role=tab]:focus, .ui-tabs-anchor:focus { 
   outline: none; 

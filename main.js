@@ -4,7 +4,6 @@ var currentTabId;
 var currentTabData;
 var csdSkel = "<CsoundSynthesizer>\n<CsInstruments>\n\n</CsInstruments>\n" +
   "<CsScore>\n\n</CsScore>\n</CsoundSynthesizer>\n";
-//var csdFileEntry;
 var csdObj;
 
 function parseCsd(text) {
@@ -135,17 +134,11 @@ function newHandler() {
 
 function playCsdHandler() {
   console.log('playCsdHandler entered');
-  csdObj = parseCsd(currentTabData.session.getValue());
+  if (typeof currentTabData !== 'undefined') {
+    csdObj = parseCsd(currentTabData.session.getValue());
+  }
   restartCsound();
 }
-
-/*
-function configureEditor() {
-  editor.setTheme("ace/theme/textmate");
-  editor.getSession().setMode("ace/mode/csound");
-  editor.getSession().on("change", setDirty);
-}
-*/
 
 function configureControls() {
   $('#newButton').button().on("click", newHandler);
@@ -210,20 +203,17 @@ function moduleDidLoad() {
   $('#title').text('Csound for Chromebook');
   console.log("csound module loaded");
   if (typeof csdObj !== 'undefined') {
+    $('#csound_output').text(' ');
+    $('div#tabs').tabs('option', 'active', 0);
     csound.Play();
     csound.CompileOrc(csdObj.CsInstruments);
     csound.ReadScore(csdObj.CsScore);
   }
 }
 
-var csoundMessageCount = 0;
 function handleMessage(message) {
   $('#csound_output').append(message.data);
   $('#csound_output').scrollTop(99999); // focus on bottom
-  if (csoundMessageCount++ >= 1000) {
-    $('#csound_output').text(' ');
-    csoundMessageCount = 0;
-  }
 }
 
 $(window).resize(function() {
