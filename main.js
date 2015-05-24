@@ -5,22 +5,16 @@ var currentTabData;
 var csdSkel = "<CsoundSynthesizer>\n<CsInstruments>\n\n</CsInstruments>\n" +
   "<CsScore>\n\n</CsScore>\n</CsoundSynthesizer>\n";
 var csdObj;
+var tempCsdReady = false;
+var tempCsdCopying = false;
 
-function parseCsd(text) {
-  var csdObj = {};
-  var match = /<CsoundSynthesizer>([\s\S]*?)<\/CsoundSynthesizer>/.exec(text);
-  if (match === null) {
-    console.log('no <CsoundSynthesizer> tags found in parseCsd');
-    return csdObj;
-  }
-  var innerText = match[1];
-  var sectionRE = /<([^>]+)>([\s\S]*?)<\/\1>/g;
-  while ( (match = sectionRE.exec(innerText)) !== null) {
-    var section = match[1];
-    var contents = match[2].replace(/^\s*/, '');
-    csdObj[section] = contents;
-  }
-  return csdObj;
+function currentTabToTempCsd() {
+  if (typeof currentTabData.session === 'undefined') return;
+  var contents = currentTabData.session.getValue();
+  var blob = new Blob([contents], {type: 'text/plain'});
+  var objectURL = URL.createObjectURL(blob);
+  csound.CopyUrlToLocal(objectURL,"temp.csd");
+  tempCsdCopying = true;
 }
 
 function restartCsound() {
@@ -46,7 +40,7 @@ function setDirty() {
 
 function unsetDirty() {
   console.log('entering unsetDirty()');
-  if (!currentTabData.dirty) return;
+  if ("dirty" in currentTabData && !currentTabData.dirty) return;
   $('#saveButton').button("option", "disabled", true);
   $('#saveAsButton').button("option", "disabled", true);
   currentTabData.dirty = false;
@@ -62,7 +56,7 @@ function saveCsd() {
         truncated = true;
         this.truncate(this.position);
       }
-      unsetDirty(tabId);
+      unsetDirty();
     };
     var contents = currentTabData.session.getValue();
     var blob = new Blob([contents], {type: 'text/plain'});
@@ -118,7 +112,6 @@ function openHandler() {
       if (fe) {
         currentTabData.fileEntry = fe;
         $('li#' + currentTabId + ' a').text(fe.name);
-        //document.querySelector('#filename').innerText = fe.name;
         unsetDirty();
       }
     }
@@ -135,9 +128,8 @@ function newHandler() {
 function playCsdHandler() {
   console.log('playCsdHandler entered');
   if (typeof currentTabData !== 'undefined') {
-    csdObj = parseCsd(currentTabData.session.getValue());
+    currentTabToTempCsd();
   }
-  restartCsound();
 }
 
 function configureControls() {
@@ -202,16 +194,21 @@ function configureTabs() {
 function moduleDidLoad() {
   $('#title').text('Csound for Chromebook');
   console.log("csound module loaded");
-  if (typeof csdObj !== 'undefined') {
-    $('#csound_output').text(' ');
+  if (tempCsdReady) {
     $('div#tabs').tabs('option', 'active', 0);
-    csound.Play();
-    csound.CompileOrc(csdObj.CsInstruments);
-    csound.ReadScore(csdObj.CsScore);
+    csound.PlayCsd("./local/temp.csd");
   }
 }
 
 function handleMessage(message) {
+  if (tempCsdCopying) {
+    if (message.data == "Complete") {
+      tempCsdCopying = false;
+      tempCsdReady = true;
+      restartCsound();
+    }
+    return;
+  }
   $('#csound_output').append(message.data);
   $('#csound_output').scrollTop(99999); // focus on bottom
 }
@@ -225,5 +222,4 @@ $('document').ready(function() {
   editor.setTheme("ace/theme/textmate");
   configureControls();
   configureTabs();
-  //unsetDirty();
 });
