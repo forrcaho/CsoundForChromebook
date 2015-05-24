@@ -14,6 +14,7 @@ function currentTabToTempCsd() {
   var blob = new Blob([contents], {type: 'text/plain'});
   var objectURL = URL.createObjectURL(blob);
   csound.CopyUrlToLocal(objectURL,"temp.csd");
+  currentTabData.inTempCsd = true;
   tempCsdCopying = true;
 }
 
@@ -30,11 +31,12 @@ function handleError(e) {
 
 function setDirty() {
   console.log('entering setDirty()');
+  if (currentTabData.inTempCsd) currentTabData.inTempCsd = false;
   if (currentTabData.dirty) return;
   if (typeof currentTabData.fileEntry !== 'undefined') {
     $('#saveButton').button("option", "disabled", false);
   }
-  $('#saveAsButton').button("option", "disabled", false);
+  //$('#saveAsButton').button("option", "disabled", false);
   currentTabData.dirty = true;
 }
 
@@ -42,7 +44,7 @@ function unsetDirty() {
   console.log('entering unsetDirty()');
   if ("dirty" in currentTabData && !currentTabData.dirty) return;
   $('#saveButton').button("option", "disabled", true);
-  $('#saveAsButton').button("option", "disabled", true);
+  //$('#saveAsButton').button("option", "disabled", true);
   currentTabData.dirty = false;
 }
 
@@ -127,9 +129,15 @@ function newHandler() {
 
 function playCsdHandler() {
   console.log('playCsdHandler entered');
-  if (typeof currentTabData !== 'undefined') {
-    currentTabToTempCsd();
+  if (typeof currentTabData === 'undefined') {
+    if (tempCsdReady) restartCsound();
+    return;
   }
+  if (currentTabData.inTempCsd && tempCsdReady) {
+    restartCsound();
+    return;
+  }
+  currentTabToTempCsd();
 }
 
 function configureControls() {
@@ -179,8 +187,12 @@ function configureTabs() {
       // switch to correct editor session
       currentTabId = ui.newTab.attr("id");
       currentTabData = tabData[currentTabId];
-      if (typeof currentTabData !== 'undefined') {
+      if (typeof currentTabData === 'undefined') {
+        $('#saveButton').button("option", "disabled", true);
+        $('#saveAsButton').button("option", "disabled", true);
+      } else {
         editor.setSession(currentTabData.session);
+        $('#saveAsButton').button("option", "enabled", true);
         if (currentTabData.dirty) {
           setDirty();
         } else {
